@@ -91,25 +91,20 @@ async def upload_files(files: List[UploadFile] = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/chat")
-async def chat(message: str = Body(..., embed=True)):
+async def chat(message: str = Body(..., embed=True), text: str = Body(None, embed=True)):
     try:
         logger.info(f"Received chat request with message: {message}")
         
-        # Search for relevant chunks
-        relevant_chunks = document_processor.search(message, k=3)
+        if message == "process_text" and text:
+            # Process pasted text
+            chunks = document_processor.process_pasted_text(text)
+            document_processor.create_index(chunks)
+            return {"response": "Text processed successfully"}
         
-        if not relevant_chunks:
-            logger.info("No relevant chunks found")
-            return {"response": "No relevant information found in the documents."}
-        
-        # Generate answer using LLM
-        answer = llm_processor.generate_answer(message, relevant_chunks)
-        logger.info(f"Generated answer: {answer}")
-        
-        return {
-            "response": answer,
-            "context": llm_processor.format_context(relevant_chunks)
-        }
+        # Regular chat processing
+        chunks = document_processor.search(message)
+        answer = llm_processor.generate_answer(message, chunks)
+        return {"response": answer}
     except Exception as e:
         logger.error(f"Error in chat: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) 
