@@ -11,7 +11,7 @@ from .llm_processor import LLMProcessor
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Smart Q&A API")
+app = FastAPI(title="PromptPilot")
 
 # Configure CORS
 app.add_middleware(
